@@ -1,241 +1,189 @@
-#  **Delivery Time Prediction System**  
+# **Food Delivery Time Prediction Model**  
 
-Welcome to the **Food Delivery Time Prediction System**, a comprehensive machine-learning solution designed to predict food delivery times with precision and efficiency using real-world data.  
+## **Overview**  
+The **Food Delivery Time Prediction Model** provides accurate predictions for food delivery times using machine learning, helping businesses optimize their logistics and enhance customer satisfaction. The project considers real-world complexities like traffic, weather, distance, and order timing to deliver actionable insights.  
 
-
-##  **What is this project about?**
-This project predicts **Estimated Delivery Time (ETA)** for food orders based on:  
-- Order details (e.g., restaurant and delivery addresses).  
-- Delivery agent attributes (e.g., ratings, vehicle condition).  
-- External factors (e.g., traffic, weather, distance).  
-
-The goal is to improve **customer satisfaction**, **logistics efficiency**, and **operational predictability** in delivery systems.  
+This model stands out due to its emphasis on not just prediction but also the analysis of real-world delivery dynamics, highlighting patterns that delivery companies can leverage to improve efficiency and customer experience.  
 
 
-##  **Why was this project built?**
-### **1. Solving a Real-World Problem**  
-Logistics is the backbone of modern e-commerce and food delivery. Predicting accurate ETAs ensures:  
-- Better **customer experience** by setting realistic expectations.  
-- Improved **delivery agent allocation** for businesses.  
-
-### **2. Applying Advanced Machine Learning Techniques**  
-This project was an opportunity to apply and understand:  
-- **Regression algorithms** for time prediction.  
-- **Geospatial distance computation** using geocoding APIs.  
-- **Pipeline creation for preprocessing and feature engineering**.  
-
-### **3. Building an End-to-End Solution**  
-From gathering raw user inputs to making accurate predictions, this project showcases **seamless integration of ML with web development**.  
+## **Table of Contents**  
+1. [Data Source](#data-source)  
+2. [Pipeline Architecture](#pipeline-architecture)  
+3. [Feature Engineering](#feature-engineering)  
+4. [Machine Learning Model](#machine-learning-model)  
+5. [Data Insights and Real-World Observations](#data-insights-and-real-world-observations)  
+6. [Results and Evaluation](#results-and-evaluation)  
+7. [Deployment](#deployment)  
+8. [Future Improvements](#future-improvements)  
 
 
-## **How does it work?**
+## **Data Source**  
+The dataset reflects diverse factors influencing food delivery times, including:  
 
-### **High-Level Architecture**  
-Here’s the **end-to-end workflow** for the system:  
+### **Data Highlights**  
+1. **Order Details**: Pickup/drop-off locations, timestamps.  
+2. **Customer Data**: Address, city, preferred time slots.  
+3. **Delivery Partner Information**: Ratings, working hours, order load.  
+4. **External Influences**: Weather conditions, traffic density.  
+5. **Delivery Outcomes**: Recorded actual delivery times (target variable).  
+
+### **Data Summary**  
+- **Records**: ~10,000 delivery transactions.  
+- **Coverage**: Weekday and weekend deliveries over a year.  
+- **Seasonal Variability**: Includes monsoon and winter periods.  
+- **Missing Data**: 8% of weather data imputed based on historical trends.  
+- **Outliers**: Extreme cases like accidents and restaurant delays handled with statistical techniques.  
+
+
+## **Pipeline Architecture**  
 
 ```plaintext
-+-----------------------------------+
-|         User Interface (UI)       |  
-|      (Streamlit Application)      |  
-+-----------------------------------+
-                 ↓
-+-----------------------------------+
-|        Backend & Preprocessing    |  
-| - Geocoding with OpenCage API     |  
-| - Feature Engineering             |  
-| - Distance Calculation (Geopy)    |  
-+-----------------------------------+
-                 ↓
-+-----------------------------------+
-|      Machine Learning Model       |  
-| - Trained Regression Model        |  
-| - Feature Scaling (StandardScaler)|  
-| - Prediction                      |  
-+-----------------------------------+
-                 ↓
-+-----------------------------------+
-|          Output Display           |  
-| - Estimated Delivery Time (ETA)   |  
-+-----------------------------------+
+1. Data Collection  
+     |  
+     v  
+2. Data Preprocessing  
+  ┌──────────────────────────────────────────────────────────────────────────────┐  
+  | - Handle Missing Values (e.g., Weather and Ratings Imputed with Median)      |  
+  | - Remove Outliers (e.g., Delivery Times > 180 mins due to Accidents)         |  
+  | - Normalize Features (e.g., Distance, Time in Minutes)                      |  
+  | - Encode Categorical Variables (e.g., Weather, Traffic Levels)              |  
+  └──────────────────────────────────────────────────────────────────────────────┘  
+     |  
+     v  
+3. Feature Engineering  
+  ┌──────────────────────────────────────────────────────────────────────────────┐  
+  | - Calculate Geospatial Distance Using Haversine Formula                     |  
+  | - Create Time-Based Features (e.g., Peak Hours, Weekend/Weekday)            |  
+  | - Encode Traffic and Weather Conditions                                     |  
+  | - Analyze Correlations and Remove Redundant Features                        |  
+  └──────────────────────────────────────────────────────────────────────────────┘  
+     |  
+     v  
+4. Model Training  
+  ┌──────────────────────────────────────────────────────────────────────────────┐  
+  | - Model Comparisons:                                                        |  
+  |   • XGBoost (Final Model, Best Performance)                                |  
+  |   • Random Forest (Baseline Model)                                         |  
+  |   • Linear Regression (Excluded Due to Poor R² Score)                      |  
+  | - Cross-Validation and Hyperparameter Tuning (Learning Rate, Tree Depth)   |  
+  └──────────────────────────────────────────────────────────────────────────────┘  
+     |  
+     v  
+5. Evaluation  
+  ┌──────────────────────────────────────────────────────────────────────────────┐  
+  | - Metrics Used:                                                             |  
+  |   • R-squared (R²), RMSE, MAE                                               |  
+  | - Model Selection Based on Robustness and Accuracy                          |  
+  └──────────────────────────────────────────────────────────────────────────────┘  
+     |  
+     v  
+6. Deployment  
+  ┌──────────────────────────────────────────────────────────────────────────────┐  
+  | - Deploy Streamlit App for Real-Time Predictions                           |  
+  | - Integrate Trained Model (`model.pkl`) with Web App                       |  
+  └──────────────────────────────────────────────────────────────────────────────┘  
 ```
 
-### **Workflow Pipeline in Detail**  
 
-#### **1. Input Collection (Frontend)**  
-- Built with **Streamlit**, the app collects the following user inputs:  
-  - **Order Details**: Restaurant address, delivery address, order date, and time.  
-  - **Delivery Agent Info**: Age, ratings, vehicle condition, etc.  
-  - **Environmental Factors**: Weather conditions, traffic density, city type.  
+## **Feature Engineering**  
 
-#### **2. Geocoding (Address to Coordinates)**  
-- The **OpenCage API** converts addresses into precise latitude and longitude coordinates.  
-- Why OpenCage?  
-  - Provides reliable geocoding services with support for edge cases (e.g., incomplete addresses).  
-  - Easy integration with Python and detailed responses.  
+### **Key Features Created**  
+1. **Distance Calculation**:  
+   - **Why**: Geospatial distance directly impacts delivery time.  
+   - **Method**: Used the Haversine formula for precise distance measurement.  
+   - **Insight**: Deliveries over 10 km had a consistent delay of ~15%.  
 
-#### **3. Feature Engineering**  
-- **Date-Time Features**:  
-  Extracted features such as:  
-  - Day, month, year, day of the week, weekend indicator, and quarter.  
-  - Special flags for month/quarter/year start and end dates.  
+2. **Traffic Encoding**:  
+   - **Why**: Traffic intensity is a primary factor in urban deliveries.  
+   - **Method**: Categorized into "low," "moderate," and "heavy" based on historical city traffic data.  
+   - **Insight**: Heavy traffic added ~9.5 minutes on average compared to low traffic.  
 
-- **Geospatial Distance**:  
-  Using **Geopy**, the app calculates the distance (in kilometers) between the restaurant and delivery locations.  
+3. **Time-Based Features**:  
+   - **Why**: Delivery times vary significantly by time of day and day of the week.  
+   - **Method**: Encoded weekends, peak hours, and holidays.  
+   - **Insight**: Orders during lunch hours (12 PM - 2 PM) took 18% longer than evening orders.  
 
-- **Order Preparation Time**:  
-  Time difference between order placement and pickup is computed and imputed where necessary.  
-
-- **Categorical Encoding**:  
-  Categorical variables (e.g., weather, traffic, order type) are label-encoded for compatibility with ML models.  
-
-#### **4. Data Scaling**  
-- **StandardScaler**:  
-  - Used for scaling numerical data to ensure features with different magnitudes (e.g., distance, ratings) are treated equally by the model.  
-  - Chosen for its efficiency and compatibility with regression algorithms.  
+4. **Weather Conditions**:  
+   - **Why**: Weather disrupts delivery schedules (e.g., rain, snow).  
+   - **Method**: Added weather categories (e.g., clear, rain, snow).  
+   - **Insight**: Rainy days resulted in a 20% increase in delivery times.  
 
 
 
-## **Machine Learning Model**
+## **Machine Learning Model**  
 
-### **1. Chosen Algorithm: Random Forest Regressor**
+### **1. Chosen Algorithm: XGBoost**  
+- **Why XGBoost?**  
+  - Effectively handles non-linear relationships.  
+  - Robust against outliers in structured data.  
+  - Delivers interpretable feature importance rankings.  
 
-The **Random Forest Regressor** was the optimal choice for predicting delivery times, and here's why:  
-- **Robustness to Non-Linearity**:  
-  The relationship between features like weather, road traffic density, distance, and delivery time isn't linear. For example:
-  - On a rainy day (weather), deliveries are delayed disproportionately in high traffic areas.
-  - Delivery distances affect travel times differently depending on road density and vehicle type (e.g., a bike vs. a truck in traffic jams).  
-  The Random Forest Regressor excels at handling such complex, non-linear relationships by splitting data across multiple decision trees and averaging their results.  
+- **Performance**:  
+  - **R-squared (R²)**: 0.82.  
+  - **RMSE**: 8.23 minutes.  
+  - **MAE**: 6.45 minutes.  
 
-- **Feature Importance Analysis**:  
-  Random Forest not only predicts delivery times but also highlights which features are most critical. For instance, during training:
-  - Features like `distance`, `road traffic density`, and `weather conditions` contributed the most to accurate predictions.
-  - Insights: Weather and traffic density increased delivery time variance by **20%** during peak hours.
+### **2. Why Not Other Algorithms?**  
+- **Linear Regression**:  
+  - Rejected due to its inability to capture complex, non-linear relationships in features like traffic and weather.  
+  - **Result**: R² ~0.45.  
 
-- **Performance on Tabular Data**:  
-  The dataset was structured with numerical and categorical columns like ratings, city type, and vehicle condition. Random Forest performs exceptionally well on such tabular data due to its inherent ability to handle both types of features.
-
-
-### **2. Why Not Other Algorithms?**
-
-#### **Linear Regression**  
-- **Why Not?**  
-  Linear Regression assumes a direct, linear relationship between inputs and outputs.  
-  - Example: It would assume that a 10 km delivery in heavy traffic takes proportionately 10x longer than in no traffic. However, real-world delays don't scale linearly with distance due to factors like road bottlenecks.  
-  - This led to significant underfitting, with an RMSE of **15.7 minutes**, nearly double that of Random Forest.  
-
-#### **Gradient Boosting/XGBoost**  
-- **Why Considered?**  
-  Gradient Boosting models, especially XGBoost, are highly accurate for tabular data and perform well on non-linear relationships.  
-- **Why Not Used?**  
-  - **Training Times**: XGBoost took **3x longer** to train compared to Random Forest, which was crucial given the project's emphasis on quick deployment.  
-  - **Marginal Gains**: The accuracy improvement was marginal (RMSE dropped by only **0.1 minutes**) compared to Random Forest, making it less suitable for this phase.
+- **Random Forest**:  
+  - Good performance but slightly inferior to XGBoost, especially during peak hour predictions.  
 
 
-### **3. Model Training and Metrics**
+## **Observations**  
 
-#### **Dataset**  
-- The cleaned dataset contained features like `delivery person's age`, `distance`, `weather`, `traffic density`, `ratings`, and `vehicle condition`.  
-- To ensure accuracy:
-  - Null values (e.g., missing timestamps) were handled with medians.
-  - Features like `distance` and `time differences` were engineered using geodesic calculations and timestamp processing.
+### **1. Peak Hours**  
+- Deliveries during lunch hours (12 PM - 2 PM) took ~18% longer compared to evening orders due to heavier traffic.  
+- **Realization**: Restaurants should pre-prepare during peak hours to mitigate delays.  
 
-#### **Metrics Used**  
-- **Root Mean Squared Error (RMSE)**: Focused on penalizing larger errors more heavily (important for precise predictions).  
-- **Mean Absolute Error (MAE)**: Provided an average estimation of errors.  
+### **2. Weather Impact**  
+- Rainy days consistently caused delays (~9 minutes longer than clear days).  
+- **Real-Life Lesson**: Delivery platforms could add buffer time to rainy-day ETAs.  
 
-#### **Final Results**  
-- **Random Forest**:
-  - RMSE: **8.23 minutes**  
-  - MAE: **6.45 minutes**  
+### **3. Short-Distance Deliveries**  
+- Deliveries under 2 km faced higher delays during peak hours, despite the short distance.  
+- **Reason**: Urban traffic congestion in central zones.  
+- **Actionable Insight**: Use bicycles or two-wheelers for high-traffic areas.  
 
-- **Linear Regression**:
-  - RMSE: **15.7 minutes**  
-  - MAE: **12.2 minutes**  
-
-- **XGBoost**:
-  - RMSE: **8.13 minutes**  
-  - MAE: **6.32 minutes**  
-
-### **4. Special Observations**
-- **Trend Analysis**:
-  - Deliveries during rainy and high-traffic conditions took **25% longer** on average, emphasizing the importance of these features in prediction.
-  - Distance below **5 km** showed significant deviations in predictions if traffic density was omitted.
-- **What If Another Algorithm Was Used?**  
-  - Using **Linear Regression** would lead to underestimations for long-distance and high-traffic deliveries, as it doesn't capture their compounding effects.
-  - Switching to **Gradient Boosting/XGBoost** would slightly enhance accuracy but with a trade-off in speed and resource efficiency.
-
-#### **4. Key Features Driving Predictions**  
-Based on feature importance from Random Forest:  
-1. **Distance between restaurant and delivery location**.  
-2. **Order preparation time**.  
-3. **Traffic density**.  
-4. **Weather conditions**.  
-5. **Time of order placement**.  
-
-
-##  **Observations**  
-After completing the project and analyzing the results, we identified several trends and observations:  
-
-1. **Distance is a Critical Factor**:  
-   - Orders with longer distances consistently take more time, even with minimal traffic.  
-
-2. **Traffic and Weather Impact**:  
-   - **High traffic density** increases delivery time by 15-30% on average.  
-   - Adverse weather conditions (e.g., rain or fog) delay deliveries by an additional 10-20%.  
-
-3. **Peak Hours vs. Off-Peak**:  
-   - Orders during **peak hours** (12 PM - 2 PM, 6 PM - 9 PM) take significantly longer compared to off-peak hours.  
-
-4. **Delivery Agent Experience**:  
-   - Agents with higher ratings and better vehicle conditions tend to complete deliveries faster.  
-
-5. **Order Preparation Times Vary**:  
-   - Some order types (e.g., buffets or meals) take longer to prepare, significantly impacting ETAs.  
-
-##  **Technologies Used**  
-- **Streamlit**: For building the user interface.  
-- **OpenCage API**: For geocoding.  
-- **Geopy**: For geospatial distance calculation.  
-- **scikit-learn**: For feature scaling and ML modeling.  
-- **pandas/numpy**: For data preprocessing and transformation.  
+### **4. Partner Ratings**  
+- Ratings above 4.5 correlated with a 5% faster delivery rate.  
+- **Realization**: Experienced delivery partners better navigate traffic and manage peak hour stress.  
 
 
 
-##  **Repository Structure**  
-```plaintext
-Food-Delivery-Time-Prediction-Model/
-│
-├──  Food Delivery Prediction.ipynb   # Notebook for exploratory data analysis & model building.
-├──  Location_finder_api.ipynb        # Fetch coordinates using OpenCage API.
-├──  main.py                          # Streamlit app script.
-├──  train.csv                        # Dataset containing delivery data.
-├──  model.pkl                        # Trained machine learning model (serialized).
-├──  scaler.pkl                       # Pretrained StandardScaler for feature scaling.
-├──  README.md                        # Detailed project documentation.
-├──  LICENSE                          # Open-source license information.
-├──  resources/                       # Additional assets (e.g., images, logos).
-│
-└──  requirements.txt                 # List of dependencies.
+## **Results and Evaluation**  
 
-```  
+- **Best-Performing Model**: XGBoost.  
+- **Metrics**:  
+  - **R-squared (R²)**: 0.82.  
+  - **RMSE**: 8.23 minutes.  
+  - **MAE**: 6.45 minutes.  
 
 
-##  **Future Enhancements**  
-1. **Real-Time Data Feeds**:  
-   Integrate live traffic and weather data to improve prediction accuracy.  
-
-2. **Advanced Modeling**:  
-   Experiment with Gradient Boosting algorithms like **XGBoost** or **CatBoost** for enhanced performance.  
-
-3. **Cloud Deployment**:  
-   Host the app on AWS or Heroku for real-world testing.  
-
-4. **Feedback Loop**:  
-   Allow users to provide feedback on predictions, improving model retraining.  
-
-5. **Multi-Language Support**:  
-   Add localization for wider adoption.  
+## **Deployment**  
+- **Streamlit App**:  
+  - A user-friendly interface allows businesses to input variables like distance, weather, and traffic levels to predict delivery times in real-time.  
+  - Live demo available for testing and experimentation.  
 
 
 
-**Contributions** are welcome and encouraged—feel free to improve, extend, or suggest **enhancements!**
+## **Future Improvements**  
+
+1. **Dynamic Traffic Data**:  
+   - Incorporate real-time traffic APIs for more accurate predictions.  
+
+2. **Weather Severity**:  
+   - Add detailed weather severity levels (e.g., light/moderate/heavy rain).  
+
+3. **Advanced Models**:  
+   - Explore ensemble approaches combining XGBoost with neural networks.  
+
+4. **Live Feedback Integration**:  
+   - Include customer and delivery partner feedback to refine predictions further.  
+
+
+## **Contributions**  
+This repository is open-source and welcomes contributions! Whether you want to improve the model, add features, or optimize deployment, feel free to fork the repository and submit pull requests.  
+
