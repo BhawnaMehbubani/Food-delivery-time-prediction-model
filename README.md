@@ -1,6 +1,6 @@
 #  **Delivery Time Prediction System**  
 
-Welcome to the **Delivery Time Prediction System**, a comprehensive machine-learning solution designed to predict food delivery times with precision and efficiency. This project is a testament to detail-oriented development, integrating advanced machine learning techniques with robust preprocessing pipelines and real-world data.  
+Welcome to the **Food Delivery Time Prediction System**, a comprehensive machine-learning solution designed to predict food delivery times with precision and efficiency using real-world data.  
 
 
 ##  **What is this project about?**
